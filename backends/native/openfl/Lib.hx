@@ -46,7 +46,14 @@ class Lib {
 	@:noCompletion private static var __moduleNames:Map<String, String> = null;
 	@:noCompletion private static var __sentWarnings = new Map<String, Bool> ();
 	@:noCompletion private static var __stage:Stage = null;
-	
+	@:noCompletion private static var __uncaughtExceptionHandler:UncaughtErrorEvent -> Bool = null;
+
+	// MW (mino) added global uncaught exception handler
+public static function setUncaughtExceptionHandler(f:UncaughtErrorEvent -> Bool)
+{
+	__uncaughtExceptionHandler = f;
+}
+
 	
 	public inline static function as<T> (v:Dynamic, c:Class<T>):Null<T> {
 		
@@ -287,6 +294,10 @@ class Lib {
 	
 	public static function rethrow (error:Dynamic):Void {
 		
+		if (__uncaughtExceptionHandler != null)
+			if (__uncaughtExceptionHandler(error))
+				return;
+
 		var event = new UncaughtErrorEvent (UncaughtErrorEvent.UNCAUGHT_ERROR, true, true, error);
 		Lib.current.loaderInfo.uncaughtErrorEvents.dispatchEvent (event);
 		
@@ -304,6 +315,11 @@ class Lib {
 			
 			if (stack.length > 0) {
 				
+				trace('====================================================');
+				for (e in stack)
+					trace(e);
+				trace('====================================================');
+
 				message += CallStack.toString (stack) + "\n";
 				
 			} else {
