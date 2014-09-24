@@ -294,11 +294,12 @@ public static function setUncaughtExceptionHandler(f:UncaughtErrorEvent -> Bool)
 	
 	public static function rethrow (error:Dynamic):Void {
 		
+		var event = new UncaughtErrorEvent (UncaughtErrorEvent.UNCAUGHT_ERROR, true, true, error);
+
 		if (__uncaughtExceptionHandler != null)
-			if (__uncaughtExceptionHandler(error))
+			if (__uncaughtExceptionHandler(event))
 				return;
 
-		var event = new UncaughtErrorEvent (UncaughtErrorEvent.UNCAUGHT_ERROR, true, true, error);
 		Lib.current.loaderInfo.uncaughtErrorEvents.dispatchEvent (event);
 		
 		if (!event.__getIsCancelled ()) {
@@ -315,17 +316,13 @@ public static function setUncaughtExceptionHandler(f:UncaughtErrorEvent -> Bool)
 			
 			if (stack.length > 0) {
 				
-				trace('====================================================');
+				trace('==================== STACK TRACE ===================');
 				for (e in stack)
 					trace(e);
 				trace('====================================================');
-
-				message += CallStack.toString (stack) + "\n";
 				
 			} else {
-				
 				message += "\n";
-				
 			}
 			
 			#if (mobile && !ios)
