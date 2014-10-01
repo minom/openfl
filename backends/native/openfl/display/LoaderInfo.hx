@@ -102,6 +102,7 @@ class LoaderInfo extends URLLoader {
 	private function this_onComplete (event:Event):Void {
 		
 		url = __pendingURL;
+		removeEventListener (Event.COMPLETE, this_onComplete);
 		
 	}
 	

@@ -2,6 +2,7 @@ package openfl;
 #if !macro
 
 
+import haxe.ds.StringMap;
 import haxe.Unserializer;
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
@@ -128,7 +129,7 @@ class Assets {
 					
 					if (useCache && cache.enabled) {
 						
-						cache.bitmapData.set (id, bitmapData);
+						//cache.bitmapData.set (id, bitmapData);
 						
 					}
 					
@@ -732,7 +733,7 @@ class Assets {
 					
 					library.loadBitmapData (symbolName, function (bitmapData:BitmapData):Void {
 						
-						cache.bitmapData.set (id, bitmapData);
+//						cache.bitmapData.set (id, bitmapData);
 						handler (bitmapData);
 						
 					});
@@ -1374,29 +1375,27 @@ class AssetLibrary {
 class AssetCache {
 	
 	
-	public var bitmapData:Map<String, BitmapData>;
+	public var bitmapData:StringMap<BitmapData>;
 	public var enabled:Bool = true;
 	public var font:Map<String, Font>;
 	public var sound:Map<String, Sound>;
 	
-	
 	public function new () {
 		
-		bitmapData = new Map<String, BitmapData> ();
+		bitmapData = new StringMap<BitmapData> ();
 		font = new Map<String, Font> ();
 		sound = new Map<String, Sound> ();
-		
 	}
 	
 	
 	public function clear (prefix:String = null):Void {
-		
+
 		if (prefix == null) {
-			
-			bitmapData = new Map<String, BitmapData> ();
+
+			bitmapData = new StringMap<BitmapData> ();
 			font = new Map<String, Font> ();
 			sound = new Map<String, Sound> ();
-			
+
 		} else {
 			
 			var keys = bitmapData.keys ();

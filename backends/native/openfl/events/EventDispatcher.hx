@@ -4,6 +4,9 @@ package openfl.events;
 import openfl.events.Event;
 import openfl.events.IEventDispatcher;
 import openfl.utils.WeakRef;
+import haxe.ds.ObjectMap;
+import haxe.ds.StringMap;
+import haxe.CallStack;
 
 
 class EventDispatcher implements IEventDispatcher {
@@ -11,44 +14,139 @@ class EventDispatcher implements IEventDispatcher {
 	
 	@:noCompletion private var __eventMap:EventMap;
 	@:noCompletion private var __target:IEventDispatcher;
-	
+
+	#if TRACE_EVENT_LISTENERS
+	public static var _eventListeners:StringMap<Int>;
+	#if TRACE_EVENT_CALLSTACK
+	public static var _eventCallStack:StringMap<StringMap<Array<StackItem>>>; 
+	#end
+	#end
 	
 	public function new (target:IEventDispatcher = null):Void {
-		
+		#if TRACE_EVENT_LISTENERS
+		if (_eventListeners == null)
+			_eventListeners = new StringMap<Int>();
+		#if TRACE_EVENT_CALLSTACK
+		if (_eventCallStack == null)
+			_eventCallStack = new StringMap<StringMap<Array<StackItem>>>();
+		#end
+		#end
 		__target = (target == null ? this : target);
 		__eventMap = null;
-		
 	}
-	
-	
-	public function addEventListener (type:String, listener:Function, useCapture:Bool = false, priority:Int = 0, useWeakReference:Bool = false):Void {
-		
+
+	#if TRACE_EVENT_LISTENERS
+	public static function printListeners(exclusions:Array<String>=null)
+	{
+		trace('Listeners:');
+		for (e in EventDispatcher._eventListeners.keys())
+		{
+			var c = EventDispatcher._eventListeners.get(e);
+			if (c > 0)
+			{
+				var excluded = false;
+				if (exclusions != null)
+					for (exclusion in exclusions) if (e.indexOf(exclusion) != -1) excluded = true;
+				if (excluded) continue;
+				trace(e + ' : ' + c);
+				#if !TRACE_EVENT_CALLSTACK
+				continue;
+				#else
+				trace('============================================================================');
+				var calls = EventDispatcher._eventCallStack.get(e);
+				for (stack in calls)
+				{
+					for (line in stack)	trace('   ' + line);
+					trace('.............................................................................');
+				}
+				#end
+			}
+		}
+	}
+
+  public function getEventId(type:String):String
+	{
+		return this + ' [' + type +']';
+	}
+	#end
+
+
+	public function addEventListener (type:String, listener:Function, useCapture:Bool = false, priority:Int = 0, useWeakReference:Bool = false):Void 
+	{
 		if (useWeakReference) {
-			
 			trace ("WARNING: Weak listener not supported for native (using hard reference)");
 			useWeakReference = false;
-			
 		}
 		
 		if (__eventMap == null) {
-			
 			__eventMap = new EventMap ();
-			
 		}
 		
 		var list = __eventMap.get (type);
-		
 		if (list == null) {
-			
 			list = new ListenerList ();
 			__eventMap.set (type, list);
-			
 		}
 		
 		list.push (new Listener (new WeakRef<Function> (listener, useWeakReference), useCapture, priority));
 		list.sort (__sortEvents);
-		
+
+		// ------------------------------ LISTENER TRACKING ----------------------------
+		#if TRACE_EVENT_LISTENERS
+		var s = getEventId(type);
+		var e:Null<Int> = _eventListeners.get(s);
+		if (e == null) {
+			e = 0; 
+		}
+
+    e = 1;
+		_eventListeners.set(s, e);
+
+		#if TRACE_EVENT_CALLSTACK
+		var stackString = haxe.CallStack.toString(haxe.CallStack.callStack());
+		var cs = _eventCallStack.get(s);
+		if (cs == null) {
+			cs = new StringMap<Array<StackItem>>();
+			cs.set(stackString, haxe.CallStack.callStack());
+			_eventCallStack.set(s, cs);
+		} else
+		{
+			cs.set(stackString, haxe.CallStack.callStack());
+		}
+		#end
+		#end
+		// ------------------------------------------------------------------------------
 	}
+	
+	public function removeEventListener (type:String, listener:Function, capture:Bool = false):Void 
+	{
+		// ------------------------------ LISTENER TRACKING ----------------------------
+		#if TRACE_EVENT_LISTENERS
+    var s = getEventId(type);
+		var e:Null<Int> = _eventListeners.get(s);
+		if (e != null)
+		{
+			e--;
+			if (e < 0) e = 0;
+			_eventListeners.set(s, e);
+		}
+		#end
+		// ------------------------------------------------------------------------------
+
+		if (__eventMap == null || !__eventMap.exists (type)) { return; }
+		var list = __eventMap.get (type);
+		var item;
+		for (i in 0...list.length) {
+			if (list[i] != null) {
+				item = list[i];
+				if (item != null && item.is (listener, capture)) {
+					list[i] = null;
+					return;
+				}
+			}
+		}
+	}
+	
 	
 
 	public function dispatchEvent (event:Event):Bool {
@@ -145,36 +243,7 @@ class EventDispatcher implements IEventDispatcher {
 	}
 	
 	
-	public function removeEventListener (type:String, listener:Function, capture:Bool = false):Void {
-		
-		if (__eventMap == null || !__eventMap.exists (type)) {
-			
-			return;
-			
-		}
-		
-		var list = __eventMap.get (type);
-		var item;
-		
-		for (i in 0...list.length) {
-			
-			if (list[i] != null) {
-				
-				item = list[i];
-				if (item != null && item.is (listener, capture)) {
-					
-					list[i] = null;
-					return;
-					
-				}
-				
-			}
-			
-		}
-		
-	}
-	
-	
+
 	public function toString ():String {
 		
 		return "[object " + Type.getClassName (Type.getClass (this)) + "]";

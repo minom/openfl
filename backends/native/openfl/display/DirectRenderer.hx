@@ -9,17 +9,27 @@ import openfl.Lib;
 
 class DirectRenderer extends DisplayObject {
 	
-	
+	private var __addToStageListener:Dynamic;
+	private var __removedFromStageListener:Dynamic;
+
 	public function new (type:String = "DirectRenderer") {
 		
 		super (lime_direct_renderer_create (), type);
-		
-		addEventListener (Event.ADDED_TO_STAGE, function(_) lime_direct_renderer_set (__handle, __onRender));
-		addEventListener (Event.REMOVED_FROM_STAGE, function(_) lime_direct_renderer_set (__handle, null));
+
+		__addToStageListener = function(_) lime_direct_renderer_set (__handle, __onRender);
+		__removedFromStageListener = function(_) lime_direct_renderer_set (__handle, null);
+		addEventListener (Event.ADDED_TO_STAGE, __addToStageListener);
+		addEventListener (Event.REMOVED_FROM_STAGE, __removedFromStageListener);
 		
 	}
 	
-	
+
+	public function dispose()
+	{
+		removeEventListener (Event.ADDED_TO_STAGE, __addToStageListener);
+		removeEventListener (Event.REMOVED_FROM_STAGE, __removedFromStageListener);
+	}
+
 	public dynamic function render (rect:Rectangle):Void {
 		
 		
