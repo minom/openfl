@@ -129,7 +129,7 @@ class Assets {
 					
 					if (useCache && cache.enabled) {
 						
-						//cache.bitmapData.set (id, bitmapData);
+						cache.bitmapData.set (id, bitmapData);
 						
 					}
 					
@@ -733,7 +733,7 @@ class Assets {
 					
 					library.loadBitmapData (symbolName, function (bitmapData:BitmapData):Void {
 						
-//						cache.bitmapData.set (id, bitmapData);
+						cache.bitmapData.set (id, bitmapData);
 						handler (bitmapData);
 						
 					});
