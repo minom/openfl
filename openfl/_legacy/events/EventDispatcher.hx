@@ -11,8 +11,11 @@ import openfl._legacy.utils.WeakRef;
 
 
 class EventDispatcher implements IEventDispatcher {
-	
-	
+
+	#if debug_event_listeners
+	@:noCompletion public static var ___staticEventMap:Map<Listener, {dispatcher:EventDispatcher, type:String, stack:String}>;
+	#end
+
 	@:noCompletion private var __targetDispatcher:IEventDispatcher;
 	@:noCompletion private var __eventMap:Map<String, Array<Listener>>;
 	
@@ -35,12 +38,27 @@ class EventDispatcher implements IEventDispatcher {
 			__eventMap = new Map<String, Array<Listener>> ();
 			
 		}
-		
+
+
+		#if debug_event_listeners
+		if(___staticEventMap == null) {
+
+			___staticEventMap = new Map();
+
+		}
+		#end
+
+
 		if (!__eventMap.exists (type)) {
 			
 			var list = new Array<Listener> ();
-			list.push (new Listener (listener, useCapture, priority));
+			var listener = new Listener (listener, useCapture, priority);
+			list.push (listener);
 			__eventMap.set (type, list);
+
+			#if debug_event_listeners
+			___staticEventMap.set(listener, {type:type, dispatcher:this, stack:haxe.CallStack.toString(haxe.CallStack.callStack())});
+			#end
 			
 		} else {
 			
@@ -51,9 +69,14 @@ class EventDispatcher implements IEventDispatcher {
 				if (Reflect.compareMethods (list[i].callback, listener)) return;
 				
 			}
-			
-			list.push (new Listener (listener, useCapture, priority));
+
+			var listener = new Listener (listener, useCapture, priority);
+			list.push (listener);
 			list.sort (__sortByPriority);
+
+			#if debug_event_listeners
+			___staticEventMap.set(listener, {type:type, dispatcher:this, stack:haxe.CallStack.toString(haxe.CallStack.callStack())});
+			#end
 			
 		}
 		
@@ -138,7 +161,12 @@ class EventDispatcher implements IEventDispatcher {
 			
 			if (list[i].match (listener, capture)) {
 				
-				list.splice (i, 1);
+				var listener = list.splice (i, 1)[0];
+
+				#if debug_event_listeners
+				___staticEventMap.remove(listener);
+				#end
+
 				break;
 				
 			}
