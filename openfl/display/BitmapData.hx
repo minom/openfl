@@ -574,11 +574,10 @@ class BitmapData implements IBitmapDrawable {
 					
 				}
 				
-				var matrixCache = source.__worldTransform;
-				source.__worldTransform = matrix != null ? matrix : new Matrix ();
+				source.__updateMatrices (matrix);
 				source.__updateChildren (false);
 				source.__renderCanvas (renderSession);
-				source.__worldTransform = matrixCache;
+				source.__updateMatrices ();
 				source.__updateChildren (true);
 				
 				if (!smoothing) {
@@ -596,7 +595,7 @@ class BitmapData implements IBitmapDrawable {
 				
 				
 				var renderSession = @:privateAccess Lib.current.stage.__renderer.renderSession;
-				__drawGL(renderSession, width, height, source, matrix, colorTransform, blendMode, clipRect, smoothing, !__usingFramebuffer, false, true);
+				__drawGL (renderSession, width, height, source, matrix, colorTransform, blendMode, clipRect, smoothing, !__usingFramebuffer, false, true);
 				
 				
 			default:
@@ -765,7 +764,7 @@ class BitmapData implements IBitmapDrawable {
 			
 			__buffer = gl.createBuffer ();
 			gl.bindBuffer (gl.ARRAY_BUFFER, __buffer);
-			gl.bufferData (gl.ARRAY_BUFFER, new Float32Array (cast data), gl.STATIC_DRAW);
+			gl.bufferData (gl.ARRAY_BUFFER, new Float32Array (data), gl.STATIC_DRAW);
 			gl.bindBuffer (gl.ARRAY_BUFFER, null);
 			
 		}
@@ -959,7 +958,8 @@ class BitmapData implements IBitmapDrawable {
 		
 		if (__image != null && __image.dirty) {
 			
-			var format = (__image.buffer.bitsPerPixel == 1 ? gl.ALPHA : gl.RGBA);
+			var internalFormat = (__image.buffer.bitsPerPixel == 1 ? gl.ALPHA : gl.RGBA);
+			var format = internalFormat;
 			gl.bindTexture (gl.TEXTURE_2D, __texture);
 			var textureImage = __image;
 			
@@ -995,14 +995,14 @@ class BitmapData implements IBitmapDrawable {
 				
 			}
 			
-			if (!textureImage.premultiplied && !textureImage.transparent) {
+			if (!textureImage.premultiplied && textureImage.transparent) {
 				
 				textureImage = textureImage.clone ();
 				textureImage.premultiplied = true;
 				
 			}
 			
-			gl.texImage2D (gl.TEXTURE_2D, 0, format, width, height, 0, format, gl.UNSIGNED_BYTE, textureImage.data);
+			gl.texImage2D (gl.TEXTURE_2D, 0, internalFormat, width, height, 0, format, gl.UNSIGNED_BYTE, textureImage.data);
 			gl.bindTexture (gl.TEXTURE_2D, null);
 			__image.dirty = false;
 			
@@ -1255,7 +1255,9 @@ class BitmapData implements IBitmapDrawable {
 	 */
 	public function scroll (x:Int, y:Int):Void {
 		
-		openfl.Lib.notImplemented ("BitmapData.scroll");
+		if (!__isValid) return;
+		__image.scroll (x, y);
+		__usingFramebuffer = false;
 		
 	}
 	
@@ -1670,6 +1672,7 @@ class BitmapData implements IBitmapDrawable {
 			this.__renderGL (renderSession);
 			spritebatch.stop ();
 			gl.deleteTexture (__texture);
+			__texture = null;
 			spritebatch.start (tmpRect);
 			
 		}
@@ -1683,21 +1686,22 @@ class BitmapData implements IBitmapDrawable {
 		
 		__flipMatrix (m);
 		
-		source.__worldTransform = m;
 		source.__worldColorTransform = colorTransform != null ? colorTransform : new ColorTransform ();
 		source.__blendMode = blendMode;
 		source.__cacheAsBitmap = false;
 		
+		source.__updateMatrices (m);
 		source.__updateChildren (false);
 		
 		source.__renderGL (renderSession);
 		
+		
 		source.__worldColorTransform = ctCache;
-		source.__worldTransform = matrixCache;
 		source.__blendMode = blendModeCache;
 		source.__cacheAsBitmap = cached;
 		
-		source.__updateChildren (true);
+		source.__updateMatrices ();
+		source.__updateChildren (false);
 		
 		spritebatch.finish ();
 		
@@ -1987,6 +1991,17 @@ class BitmapData implements IBitmapDrawable {
 				
 			}
 			
+		}
+		
+	}
+	
+	
+	@:noCompletion @:dox(hide) public function __updateMatrices (?overrideTransform:Matrix = null):Void {
+		
+		if (overrideTransform == null) {
+			__worldTransform.identity();
+		} else {
+			__worldTransform = overrideTransform;
 		}
 		
 	}

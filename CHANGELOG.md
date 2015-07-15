@@ -1,3 +1,50 @@
+3.1.3 (07/13/2015)
+------------------
+
+* Added support for bitmapData.scroll
+* Updated to support newer openfl-samples
+* Updated to include a default project icon
+* Fixed a regression in bitmapData.draw
+* Improved Assets.load* to share one background thread (legacy)
+
+
+3.1.2 (07/09/2015)
+------------------
+
+* Improved Assets.load* to be asynchronous on native platforms
+* Improved URLLoader to be asynchronous on native platforms
+* Improved Loader to be asynchronous on native platforms
+* Improved scrollRect support in canvas and GL renderers
+* Fixed TextField bounds calculations in the Cairo renderer
+* Fixed over-multiplication of text in the Cairo renderer
+* Improved Loader to not be picky about file extensions (legacy)
+* Fixed support for hxscout (legacy)
+
+
+3.1.1 (07/02/2015)
+------------------
+
+* Improved the behavior of EventDispatcher
+* Changed relevant TextFormat values to be Int, not Float
+* Improved support for TextField leading values
+* Improved multi-touch support on desktop targets
+* Improved support for using NEAREST filter mode in Stage3D
+* Fixed rendering when TextField autoSize increases the width
+* Fixed some issues that occurred with too-large alpha values
+* Fixed support for sound.length on native targets
+* Fixed support for keyboardEvent.keyLocation
+
+
+3.1.0 (06/08/2015)
+------------------
+
+* Enabled Cairo graphics in GL mode by default
+* Added initial hooks for Haxe telemetry (hxscout)
+* Fixed bug in image premultiplication
+* Fixed black textures when mixing Cairo with OpenGL
+* Fixed crash in HTML5 when using sparse graphics
+
+
 3.0.8 (05/31/2015)
 ------------------
 

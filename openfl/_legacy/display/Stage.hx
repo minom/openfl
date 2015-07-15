@@ -739,7 +739,7 @@ class Stage extends DisplayObjectContainer {
 			
 		    case JoystickEvent.DEVICE_ADDED:
 		
-		        joystickEvent = new JoystickEvent (type, false, false, event.id); 
+		        joystickEvent = new JoystickEvent (type, false, false, event.id, 0, event.x); 
 
 		    case JoystickEvent.DEVICE_REMOVED:
 
@@ -1076,6 +1076,11 @@ class Stage extends DisplayObjectContainer {
 		#if !disable_legacy_networking
 		URLLoader.__pollData ();
 		#end
+		
+		#if (tools && lime_legacy && !lime_hybrid) 
+		DefaultAssetLibrary.__poll ();
+		#end
+		
 		__checkRender ();
 		
 	}
@@ -1153,7 +1158,7 @@ class Stage extends DisplayObjectContainer {
 							
 						}
 						
-					}, 100);
+					}, 30);
 					
 				}
 				#end

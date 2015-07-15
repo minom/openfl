@@ -696,8 +696,9 @@ class DisplayObjectContainer extends InteractiveObject {
 		
 		if (!visible || (interactiveOnly && !mouseEnabled)) return false;
 		
-		var i = __children.length;
+		if (scrollRect != null && !scrollRect.containsPoint(globalToLocal(new Point(x, y)))) return false;
 		
+		var i = __children.length;
 		if (interactiveOnly) {
 			
 			if (stack == null || !mouseChildren) {
@@ -806,7 +807,7 @@ class DisplayObjectContainer extends InteractiveObject {
 		
 		if (scrollRect != null) {
 			
-			renderSession.maskManager.popMask ();
+			renderSession.maskManager.popRect ();
 			
 		}
 		
@@ -845,7 +846,7 @@ class DisplayObjectContainer extends InteractiveObject {
 		
 		if (scrollRect != null) {
 			
-			renderSession.maskManager.pushRect (scrollRect, __worldTransform);
+			renderSession.maskManager.pushRect (scrollRect, __renderMatrix);
 			
 		}
 		
@@ -871,7 +872,7 @@ class DisplayObjectContainer extends InteractiveObject {
 		
 		if (scrollRect != null) {
 			
-			renderSession.maskManager.popMask ();
+			renderSession.maskManager.popRect ();
 			
 		}
 		
@@ -951,23 +952,18 @@ class DisplayObjectContainer extends InteractiveObject {
 		
 		if (!__renderable || __worldAlpha <= 0) return;
 		
-		if (scrollRect != null) {
-			renderSession.spriteBatch.stop();
-			var m = __worldTransform.clone();
-			var clip = scrollRect.transform(m);
-			clip.y = renderSession.renderer.height - clip.y - clip.height;
-			
-			renderSession.spriteBatch.start(clip);
-		}
 		
+		if (scrollRect != null) {
+			
+			renderSession.maskManager.pushRect(scrollRect, __renderMatrix);
+			
+		}
 		
 		var masked = __mask != null && __maskGraphics != null && __maskGraphics.__commands.length > 0;
 		
 		if (masked) {
 			
-			renderSession.spriteBatch.stop ();
 			renderSession.maskManager.pushMask (this);
-			renderSession.spriteBatch.start ();
 			
 		}
 		
@@ -981,17 +977,17 @@ class DisplayObjectContainer extends InteractiveObject {
 		
 		if (masked) {
 			
-			renderSession.spriteBatch.stop ();
-			//renderSession.maskManager.popMask (this);
 			renderSession.maskManager.popMask ();
-			renderSession.spriteBatch.start ();
 			
 		}
 		
 		if (scrollRect != null) {
-			renderSession.spriteBatch.stop();
-			renderSession.spriteBatch.start();
+			
+			renderSession.maskManager.popRect ();
+			
 		}
+		
+		
 		
 		__removedChildren = [];
 		
