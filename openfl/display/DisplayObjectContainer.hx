@@ -165,7 +165,7 @@ class DisplayObjectContainer extends InteractiveObject {
 			
 			var event = new Event (Event.ADDED, true);
 			event.target = child;
-			child.dispatchEvent (event);
+			child.__dispatchEvent (event);
 			
 		}
 		
@@ -236,7 +236,7 @@ class DisplayObjectContainer extends InteractiveObject {
 			
 			var event = new Event (Event.ADDED, true);
 			event.target = child;
-			child.dispatchEvent (event);
+			child.__dispatchEvent (event);
 			
 		}
 		
@@ -442,7 +442,7 @@ class DisplayObjectContainer extends InteractiveObject {
 			__removedChildren.push (child);
 			child.__setTransformDirty ();
 			child.__setRenderDirty ();
-			child.dispatchEvent (new Event (Event.REMOVED, true));
+			child.__dispatchEvent (new Event (Event.REMOVED, true));
 			
 		}
 		
@@ -659,6 +659,17 @@ class DisplayObjectContainer extends InteractiveObject {
 	}
 	
 	
+	@:noCompletion private override function __enterFrame ():Void {
+		
+		for (child in __children) {
+			
+			child.__enterFrame ();
+			
+		}
+		
+	}
+	
+	
 	@:noCompletion private override function __getBounds (rect:Rectangle, matrix:Matrix):Void {
 		
 		super.__getBounds (rect, matrix);
@@ -694,9 +705,9 @@ class DisplayObjectContainer extends InteractiveObject {
 	
 	@:noCompletion private override function __hitTest (x:Float, y:Float, shapeFlag:Bool, stack:Array<DisplayObject>, interactiveOnly:Bool):Bool {
 		
-		if (!visible || (interactiveOnly && !mouseEnabled)) return false;
+		if (!visible || __isMask) return false;
 		
-		if (scrollRect != null && !scrollRect.containsPoint(globalToLocal(new Point(x, y)))) return false;
+		if (scrollRect != null && !scrollRect.containsPoint (globalToLocal (new Point (x, y)))) return false;
 		
 		var i = __children.length;
 		if (interactiveOnly) {
@@ -707,7 +718,7 @@ class DisplayObjectContainer extends InteractiveObject {
 					
 					if (__children[i].__hitTest (x, y, shapeFlag, null, true)) {
 						
-						if (stack != null) {
+						if (mouseEnabled && stack != null) {
 							
 							stack.push (this);
 							
@@ -730,7 +741,7 @@ class DisplayObjectContainer extends InteractiveObject {
 					
 					interactive = __children[i].__getInteractive (null);
 					
-					if (interactive || !hitTest) {
+					if (interactive || (mouseEnabled && !hitTest)) {
 						
 						if (__children[i].__hitTest (x, y, shapeFlag, stack, true)) {
 							
@@ -750,7 +761,12 @@ class DisplayObjectContainer extends InteractiveObject {
 				
 				if (hitTest) {
 					
-					stack.insert (length, this);
+					if (mouseEnabled) {
+						
+						stack.insert (length, this);
+						
+					}
+					
 					return true;
 					
 				}
@@ -766,7 +782,6 @@ class DisplayObjectContainer extends InteractiveObject {
 			}
 			
 		}
-		
 		
 		return false;
 		
@@ -797,7 +812,11 @@ class DisplayObjectContainer extends InteractiveObject {
 			
 		}
 		
-		__removedChildren = [];
+		if (__removedChildren.length > 0) {
+			
+			__removedChildren.splice (0, __removedChildren.length);
+			
+		}
 		
 		if (__mask != null) {
 			
@@ -807,7 +826,7 @@ class DisplayObjectContainer extends InteractiveObject {
 		
 		if (scrollRect != null) {
 			
-			renderSession.maskManager.popRect ();
+			renderSession.maskManager.popMask ();
 			
 		}
 		
@@ -846,7 +865,7 @@ class DisplayObjectContainer extends InteractiveObject {
 		
 		if (scrollRect != null) {
 			
-			renderSession.maskManager.pushRect (scrollRect, __renderMatrix);
+			renderSession.maskManager.pushRect (scrollRect, __worldTransform);
 			
 		}
 		
@@ -862,7 +881,11 @@ class DisplayObjectContainer extends InteractiveObject {
 			
 		}
 		
-		__removedChildren = [];
+		if (__removedChildren.length > 0) {
+			
+			__removedChildren.splice (0, __removedChildren.length);
+			
+		}
 		
 		if (__mask != null) {
 			
@@ -872,7 +895,7 @@ class DisplayObjectContainer extends InteractiveObject {
 		
 		if (scrollRect != null) {
 			
-			renderSession.maskManager.popRect ();
+			renderSession.maskManager.popMask ();
 			
 		}
 		
@@ -935,7 +958,11 @@ class DisplayObjectContainer extends InteractiveObject {
 			
 		}
 		
-		__removedChildren = [];
+		if (__removedChildren.length > 0) {
+			
+			__removedChildren.splice (0, __removedChildren.length);
+			
+		}
 		
 		if (__mask != null) {
 			
@@ -952,18 +979,23 @@ class DisplayObjectContainer extends InteractiveObject {
 		
 		if (!__renderable || __worldAlpha <= 0) return;
 		
-		
 		if (scrollRect != null) {
+			renderSession.spriteBatch.stop();
+			var m = __worldTransform.clone();
+			var clip = scrollRect.transform(m);
+			clip.y = renderSession.renderer.height - clip.y - clip.height;
 			
-			renderSession.maskManager.pushRect(scrollRect, __renderMatrix);
-			
+			renderSession.spriteBatch.start(clip);
 		}
+		
 		
 		var masked = __mask != null && __maskGraphics != null && __maskGraphics.__commands.length > 0;
 		
 		if (masked) {
 			
+			renderSession.spriteBatch.stop ();
 			renderSession.maskManager.pushMask (this);
+			renderSession.spriteBatch.start ();
 			
 		}
 		
@@ -977,19 +1009,23 @@ class DisplayObjectContainer extends InteractiveObject {
 		
 		if (masked) {
 			
+			renderSession.spriteBatch.stop ();
+			//renderSession.maskManager.popMask (this);
 			renderSession.maskManager.popMask ();
+			renderSession.spriteBatch.start ();
 			
 		}
 		
 		if (scrollRect != null) {
-			
-			renderSession.maskManager.popRect ();
-			
+			renderSession.spriteBatch.stop();
+			renderSession.spriteBatch.start();
 		}
 		
-		
-		
-		__removedChildren = [];
+		if (__removedChildren.length > 0) {
+			
+			__removedChildren.splice (0, __removedChildren.length);
+			
+		}
 		
 	}
 	
@@ -1000,7 +1036,7 @@ class DisplayObjectContainer extends InteractiveObject {
 			
 			if (this.stage != null) {
 				
-				dispatchEvent (new Event (Event.REMOVED_FROM_STAGE, false, false));
+				__dispatchEvent (new Event (Event.REMOVED_FROM_STAGE, false, false));
 				
 			}
 			
@@ -1008,7 +1044,7 @@ class DisplayObjectContainer extends InteractiveObject {
 			
 			if (stage != null) {
 				
-				dispatchEvent (new Event (Event.ADDED_TO_STAGE, false, false));
+				__dispatchEvent (new Event (Event.ADDED_TO_STAGE, false, false));
 				
 			}
 			

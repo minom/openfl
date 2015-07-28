@@ -607,7 +607,7 @@ class Stage extends DisplayObjectContainer implements IModule {
 	
 	public override function globalToLocal (pos:Point):Point {
 		
-		return pos;
+		return pos.clone ();
 		
 	}
 	
@@ -672,7 +672,7 @@ class Stage extends DisplayObjectContainer implements IModule {
 	
 	public override function localToGlobal (pos:Point):Point {
 		
-		return pos;
+		return pos.clone ();
 		
 	}
 	
@@ -901,7 +901,7 @@ class Stage extends DisplayObjectContainer implements IModule {
 	
 	public function onWindowLeave ():Void {
 		
-		dispatchEvent (new Event (Event.MOUSE_LEAVE));
+		__dispatchEvent (new Event (Event.MOUSE_LEAVE));
 		
 	}
 	
@@ -968,6 +968,7 @@ class Stage extends DisplayObjectContainer implements IModule {
 		#end
 		
 		__renderable = true;
+		__enterFrame ();
 		__update (false, true);
 		
 		if (__renderer != null) {
@@ -1194,7 +1195,7 @@ class Stage extends DisplayObjectContainer implements IModule {
 		var target:InteractiveObject = null;
 		var targetPoint = new Point (x, y);
 		
-		if (__hitTest (x, y, false, stack, true)) {
+		if (__hitTest (x, y, true, stack, true)) {
 			
 			target = cast stack[stack.length - 1];
 			
@@ -1272,7 +1273,7 @@ class Stage extends DisplayObjectContainer implements IModule {
 				__mouseOutStack.remove (target);
 				
 				var localPoint = target.globalToLocal (targetPoint);
-				target.dispatchEvent (new MouseEvent (MouseEvent.MOUSE_OUT, false, false, localPoint.x, localPoint.y, cast target));
+				target.__dispatchEvent (new MouseEvent (MouseEvent.MOUSE_OUT, false, false, localPoint.x, localPoint.y, cast target));
 				
 			}
 			
@@ -1285,7 +1286,7 @@ class Stage extends DisplayObjectContainer implements IModule {
 				if (target.hasEventListener (MouseEvent.MOUSE_OVER)) {
 					
 					var localPoint = target.globalToLocal (targetPoint);
-					target.dispatchEvent (new MouseEvent (MouseEvent.MOUSE_OVER, false, false, localPoint.x, localPoint.y, cast target));
+					target.__dispatchEvent (new MouseEvent (MouseEvent.MOUSE_OVER, false, false, localPoint.x, localPoint.y, cast target));
 					
 				}
 				

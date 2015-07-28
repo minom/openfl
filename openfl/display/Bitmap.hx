@@ -54,7 +54,7 @@ import js.html.ImageElement;
 @:access(openfl.display.Graphics)
 
 
-class Bitmap extends DisplayObjectContainer {
+class Bitmap extends DisplayObject {
 	
 	
 	/**
@@ -125,11 +125,14 @@ class Bitmap extends DisplayObjectContainer {
 	
 	@:noCompletion private override function __hitTest (x:Float, y:Float, shapeFlag:Bool, stack:Array<DisplayObject>, interactiveOnly:Bool):Bool {
 		
-		if (!visible || bitmapData == null) return false;
+		if (!visible || __isMask || bitmapData == null) return false;
 		
-		var point = globalToLocal (new Point (x, y));
+		__getTransform ();
 		
-		if (point.x > 0 && point.y > 0 && point.x <= bitmapData.width && point.y <= bitmapData.height) {
+		var px = __worldTransform.__transformInverseX (x, y);
+		var py = __worldTransform.__transformInverseY (x, y);
+		
+		if (px > 0 && py > 0 && px <= bitmapData.width && py <= bitmapData.height) {
 			
 			if (stack != null && !interactiveOnly) {
 				
@@ -186,7 +189,7 @@ class Bitmap extends DisplayObjectContainer {
 		GLBitmap.render (this, renderSession);
 		
 	}
-
+	
 	
 	@:noCompletion @:dox(hide) public override function __updateMask (maskGraphics:Graphics):Void {
 		
@@ -230,13 +233,7 @@ class Bitmap extends DisplayObjectContainer {
 		
 		if (bitmapData != null) {
 			
-			if (value != bitmapData.height) {
-				
-				__setTransformDirty ();
-				scaleY = value / bitmapData.height;
-				
-			}
-			
+			scaleY = value / bitmapData.height;
 			return value;
 			
 		}
@@ -263,13 +260,7 @@ class Bitmap extends DisplayObjectContainer {
 		
 		if (bitmapData != null) {
 			
-			if (value != bitmapData.width) {
-				
-				__setTransformDirty ();
-				scaleX = value / bitmapData.width;
-				
-			}
-			
+			scaleX = value / bitmapData.width;
 			return value;
 			
 		}
