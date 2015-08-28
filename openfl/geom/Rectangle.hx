@@ -452,6 +452,13 @@ class Rectangle {
 	}
 	
 	
+	public function toString ():String {
+		
+		return "(x=" + x + ", y=" + y + ", width=" + width + ", height=" + height + ")";
+		
+	}
+	
+	
 	/**
 	 * Adds two rectangles together to create a new Rectangle object, by filling
 	 * in the horizontal and vertical space between the two rectangles.
@@ -485,7 +492,7 @@ class Rectangle {
 	}
 	
 	
-	@:noCompletion public function __contract (x:Float, y:Float, width:Float, height:Float):Void {
+	@:noCompletion @:dox(hide) public function __contract (x:Float, y:Float, width:Float, height:Float):Void {
 		
 		if (this.width == 0 && this.height == 0) {
 			
@@ -504,7 +511,7 @@ class Rectangle {
 	}
 	
 	
-	@:noCompletion public function __expand (x:Float, y:Float, width:Float, height:Float):Void {
+	@:noCompletion @:dox(hide) public function __expand (x:Float, y:Float, width:Float, height:Float):Void {
 		
 		if (this.width == 0 && this.height == 0) {
 			

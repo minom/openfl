@@ -47,7 +47,7 @@ import js.Browser;
  * <p><b>Note:</b> The Multitouch feature is not supported for SWF files
  * embedded in HTML running on Mac OS.</p>
  */
-class Multitouch {
+@:final class Multitouch {
 	
 	
 	/**
@@ -110,7 +110,7 @@ class Multitouch {
 	public static var supportsTouchEvents (get, null):Bool;
 	
 	
-	@:noCompletion public static function __init__ () {
+	@:noCompletion @:dox(hide) public static function __init__ () {
 		
 		maxTouchPoints = 2;
 		supportedGestures = null;

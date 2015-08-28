@@ -1,3 +1,69 @@
+3.3.2 (08/26/2015)
+------------------
+
+* Renamed bitmapData.__image to image, made it public
+* Added FileReference and FileReferenceList
+* Added proper shapeFlag support for graphic hit test
+* Added bitmapData.compare
+* Added clipRect support in bitmapData.draw
+* Improved hit testing of masked objects
+* Reduced allocations made in graphics render
+* Fixed bounds check when object is not visible
+* Fixed return value of displayObject.globalToLocal
+* Fixed URLLoader to return on the correct thread
+* Fixed render update handling in transform.colorTransform
+* Fixed calculation of textHeight with negative leading
+* Fixed bitmapData.getColorBoundsRect
+* Fixed support for scrollRect on bitmaps
+* Fixed support for -Dtelemetry builds
+* Fixed some issues when setting transform.matrix
+* Fixed some issues with scrollRect
+* Fixed regression in disabling smoothing on Firefox
+* Fixed canvas mask support for drawRoundRect
+* Fixed Event.ADDED_TO_STAGE order (legacy)
+* Fixed missing callback in Assets.loadLibrary (legacy)
+
+
+3.3.1 (08/20/2015)
+------------------
+
+* Added support for multiple windows
+* Updated for Lime 2.6
+* Made continued improvements to the TextField implementation
+* Improved the rendering of pixel-based fonts
+* Fixed edge cases in text selection and replacement
+* Fixed support for multiple input text fields
+* Improved support for tabEnabled and stage.focus
+* Improved support for DOM input text
+* Restored SharedObject support
+* Added stage.application and OpenFL Application/Window classes
+* Improved hit testing for Graphics shapes
+* Made the DEACTIVATE event more consistent when exiting
+* Fixed support for eventDispatcher.hasEventListener in some cases
+
+
+3.3.0 (08/13/2015)
+------------------
+
+* Brand-new, heavily improved TextField implementation
+* Greatly increased the accuracy of TextField rendering
+* Implemented all missing TextField methods
+* Added text input support for native
+* Added openfl.desktop.Clipboard
+* Improved hit test support
+* Reduced allocations for better GC (thanks HxScout!)
+* Made final classes @:final to improve consistency
+* Added support for bitmapData.hitTest
+* Added support for graphics.drawGraphicsData
+* Added support for <config:hxtelemetry port="" allocations="" />
+* Added stage.window for access to the parent Lime window
+* Implemented Capabilities screenResolutionX/screenResolutionY
+* Improved default font handling on Linux
+* Fixed event.target for manual dispatchEvent calls
+* Fixed local Loader/URLLoader calls that have GET parameters
+* Fixed support for Font.enumerateFonts
+
+
 3.2.2 (07/23/2015)
 ------------------
 
