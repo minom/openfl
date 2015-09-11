@@ -39,17 +39,69 @@ class CairoGraphics {
 	private static var bitmapRepeat:Bool;
 	private static var bounds:Rectangle;
 	private static var cairo:Cairo;
-	private static var fillCommands = new Array<DrawCommand> ();
+	private static var fillCommands:Array<DrawCommand>;
 	private static var fillPattern:CairoPattern;
 	private static var fillPatternMatrix:Matrix;
 	private static var graphics:Graphics;
 	private static var hasFill:Bool;
 	private static var hasStroke:Bool;
-	private static var hitTesting:Bool;
 	private static var inversePendingMatrix:Matrix;
 	private static var pendingMatrix:Matrix;
-	private static var strokeCommands = new Array<DrawCommand> ();
+	private static var strokeCommands:Array<DrawCommand>;
 	private static var strokePattern:CairoPattern;
+	
+	
+	private static function drawRoundRect (x:Float, y:Float, width:Float, height:Float, rx:Float, ry:Float):Void {
+		
+		if (ry == -1) ry = rx;
+		
+		rx *= 0.5;
+		ry *= 0.5;
+		
+		if (rx > width / 2) rx = width / 2;
+		if (ry > height / 2) ry = height / 2;
+		
+		var xe = x + width,
+		ye = y + height,
+		cx1 = -rx + (rx * SIN45),
+		cx2 = -rx + (rx * TAN22),
+		cy1 = -ry + (ry * SIN45),
+		cy2 = -ry + (ry * TAN22);
+		
+		cairo.moveTo (xe, ye - ry);
+		quadraticCurveTo (xe, ye + cy2, xe + cx1, ye + cy1);
+		quadraticCurveTo (xe + cx2, ye, xe - rx, ye);
+		cairo.lineTo (x + rx, ye);
+		quadraticCurveTo (x - cx2, ye, x - cx1, ye + cy1);
+		quadraticCurveTo (x, ye + cy2, x, ye - ry);
+		cairo.lineTo (x, y + ry);
+		quadraticCurveTo (x, y - cy2, x - cx1, y - cy1);
+		quadraticCurveTo (x - cx2, y, x + rx, y);
+		cairo.lineTo (xe - rx, y);
+		quadraticCurveTo (xe + cx2, y, xe + cx1, y - cy1);
+		quadraticCurveTo (xe, y - cy2, xe, y + ry);
+		cairo.lineTo (xe, ye - ry);
+		
+	}
+	
+	
+	private static function endFill ():Void {
+		
+		cairo.newPath ();
+		playCommands (fillCommands, false);
+		fillCommands = [];
+		
+	}
+	
+	
+	private static function endStroke ():Void {
+		
+		cairo.newPath ();
+		playCommands (strokeCommands, true);
+		cairo.closePath ();
+		strokeCommands = [];
+		
+	}
 	
 	
 	private static function closePath ():Void {
@@ -62,7 +114,7 @@ class CairoGraphics {
 		
 		cairo.closePath ();
 		cairo.source = strokePattern;
-		if (!hitTesting) cairo.strokePreserve ();
+		cairo.strokePreserve ();
 		cairo.newPath ();
 		
 	}
@@ -98,7 +150,7 @@ class CairoGraphics {
 				point2.y += graphics.__bounds.y;
 				
 				pattern = CairoPattern.createLinear (point1.x, point1.y, point2.x, point2.y);
-			
+				
 		}
 		
 		for (i in 0...colors.length) {
@@ -142,198 +194,6 @@ class CairoGraphics {
 		fillPatternMatrix = matrix;
 		
 		return pattern;
-		
-	}
-	
-	
-	private static function drawRoundRect (x:Float, y:Float, width:Float, height:Float, rx:Float, ry:Float):Void {
-		
-		if (ry == -1) ry = rx;
-		
-		rx *= 0.5;
-		ry *= 0.5;
-		
-		if (rx > width / 2) rx = width / 2;
-		if (ry > height / 2) ry = height / 2;
-		
-		var xe = x + width,
-		ye = y + height,
-		cx1 = -rx + (rx * SIN45),
-		cx2 = -rx + (rx * TAN22),
-		cy1 = -ry + (ry * SIN45),
-		cy2 = -ry + (ry * TAN22);
-		
-		cairo.moveTo (xe, ye - ry);
-		quadraticCurveTo (xe, ye + cy2, xe + cx1, ye + cy1);
-		quadraticCurveTo (xe + cx2, ye, xe - rx, ye);
-		cairo.lineTo (x + rx, ye);
-		quadraticCurveTo (x - cx2, ye, x - cx1, ye + cy1);
-		quadraticCurveTo (x, ye + cy2, x, ye - ry);
-		cairo.lineTo (x, y + ry);
-		quadraticCurveTo (x, y - cy2, x - cx1, y - cy1);
-		quadraticCurveTo (x - cx2, y, x + rx, y);
-		cairo.lineTo (xe - rx, y);
-		quadraticCurveTo (xe + cx2, y, xe + cx1, y - cy1);
-		quadraticCurveTo (xe, y - cy2, xe, y + ry);
-		cairo.lineTo (xe, ye - ry);
-		
-	}
-	
-	
-	private static function endFill ():Void {
-		
-		cairo.newPath ();
-		playCommands (fillCommands, false);
-		fillCommands.splice (0, fillCommands.length);
-		
-	}
-	
-	
-	private static function endStroke ():Void {
-		
-		cairo.newPath ();
-		playCommands (strokeCommands, true);
-		cairo.closePath ();
-		strokeCommands.splice (0, strokeCommands.length);
-		
-	}
-	
-	
-	public static function hitTest (graphics:Graphics, x:Float, y:Float):Bool {
-		
-		#if lime_cairo
-		CairoGraphics.graphics = graphics;
-		bounds = graphics.__bounds;
-		
-		if (!graphics.__visible || graphics.__commands.length == 0 || bounds == null || bounds.width == 0 || bounds.height == 0 || !bounds.contains (x, y)) {
-			
-			return false;
-			
-		} else {
-			
-			hitTesting = true;
-			
-			x -= bounds.x;
-			y -= bounds.y;
-			
-			if (graphics.__cairo == null) {
-				
-				var bitmap = new BitmapData (Math.floor (bounds.width), Math.floor (bounds.height), true);
-				var surface = bitmap.getSurface ();
-				graphics.__cairo = new Cairo (surface);
-				surface.destroy ();
-				
-				graphics.__bitmap = bitmap;
-				
-			}
-			
-			cairo = graphics.__cairo;
-			
-			fillCommands.splice (0, fillCommands.length);
-			strokeCommands.splice (0, strokeCommands.length);
-			
-			hasFill = false;
-			hasStroke = false;
-			
-			fillPattern = null;
-			strokePattern = null;
-			
-			cairo.newPath ();
-			
-			for (command in graphics.__commands) {
-				
-				switch (command) {
-					
-					case CubicCurveTo (_, _, _, _, _, _), CurveTo (_, _, _, _), LineTo (_, _), MoveTo (_, _):
-						
-						fillCommands.push (command);
-						strokeCommands.push (command);
-					
-					case LineStyle (_, _, _, _, _, _, _, _), LineGradientStyle (_, _, _, _, _, _, _, _), LineBitmapStyle (_, _, _, _):
-						
-						strokeCommands.push (command);
-					
-					case EndFill:
-						
-						endFill ();
-						endStroke ();
-						
-						if (hasFill && cairo.inFill (x, y)) {
-							
-							return true;
-							
-						}
-						
-						if (hasStroke && cairo.inStroke (x, y)) {
-							
-							return true;
-							
-						}
-						
-						hasFill = false;
-						bitmapFill = null;
-						
-					case BeginBitmapFill (_, _, _, _), BeginFill (_, _), BeginGradientFill (_, _, _, _, _, _, _, _):
-						
-						endFill ();
-						endStroke ();
-						
-						if (hasFill && cairo.inFill (x, y)) {
-							
-							return true;
-							
-						}
-						
-						if (hasStroke && cairo.inStroke (x, y)) {
-							
-							return true;
-							
-						}
-						
-						fillCommands.push (command);
-						strokeCommands.push (command);
-					
-					case DrawCircle (_, _, _), DrawEllipse (_, _, _, _), DrawRect (_, _, _, _), DrawRoundRect (_, _, _, _, _, _):
-						
-						fillCommands.push (command);
-						strokeCommands.push (command);
-						
-					
-					default:
-						
-					
-				}
-				
-			}
-			
-			if (fillCommands.length > 0) {
-				
-				endFill ();
-				
-			}
-			
-			if (strokeCommands.length > 0) {
-				
-				endStroke ();
-				
-			}
-			
-			if (hasFill && cairo.inFill (x, y)) {
-				
-				return true;
-				
-			}
-			
-			if (hasStroke && cairo.inStroke (x, y)) {
-				
-				return true;
-				
-			}
-			
-		}
-		#end
-		
-		return false;
 		
 	}
 	
@@ -389,8 +249,6 @@ class CairoGraphics {
 	
 	
 	private static function playCommands (commands:Array<DrawCommand>, stroke:Bool = false):Void {
-		
-		if (commands.length == 0) return;
 		
 		bounds = graphics.__bounds;
 		
@@ -486,7 +344,6 @@ class CairoGraphics {
 						closePath ();
 						
 					}
-					
 					cairo.moveTo (positionX - offsetX, positionY - offsetY);
 					
 					if (thickness == null) {
@@ -762,7 +619,7 @@ class CairoGraphics {
 							cairo.lineTo (x2, y2);
 							cairo.lineTo (x3, y3);
 							cairo.closePath ();
-							if (!hitTesting) cairo.fillPreserve ();
+							cairo.fillPreserve ();
 							i += 3;
 							continue;
 							
@@ -804,7 +661,7 @@ class CairoGraphics {
 						var matrix = new Matrix3 (t1, t2, t3, t4, dx, dy);
 						cairo.matrix = matrix;
 						cairo.source = fillPattern;
-						if (!hitTesting) cairo.fill ();
+						cairo.fill ();
 						
 						i += 3;
 						
@@ -820,7 +677,6 @@ class CairoGraphics {
 					var useRect = (flags & Graphics.TILE_RECT) > 0;
 					var useOrigin = (flags & Graphics.TILE_ORIGIN) > 0;
 					var useBlendAdd = (flags & Graphics.TILE_BLEND_ADD) > 0;
-					var useBlendOverlay = (flags & Graphics.TILE_BLEND_OVERLAY) > 0;
 					
 					if (useTransform) { useScale = false; useRotation = false; }
 					
@@ -855,12 +711,6 @@ class CairoGraphics {
 					if (useBlendAdd) {
 						
 						cairo.operator = ADD;
-						
-					}
-					
-					if (useBlendOverlay) {
-						
-						cairo.operator = OVERLAY;
 						
 					}
 					
@@ -943,11 +793,11 @@ class CairoGraphics {
 							
 							if (useAlpha) {
 								
-								if (!hitTesting) cairo.paintWithAlpha (tileData[index + alphaIndex]);
+								cairo.paintWithAlpha (tileData[index + alphaIndex]);
 								
 							} else {
 								
-								if (!hitTesting) cairo.paint ();
+								cairo.paint ();
 								
 							}
 							
@@ -959,7 +809,7 @@ class CairoGraphics {
 						
 					}
 					
-					if (useBlendAdd || useBlendOverlay) {
+					if (useBlendAdd) {
 						
 						cairo.operator = OVER;
 						
@@ -983,7 +833,7 @@ class CairoGraphics {
 				}
 				
 				cairo.source = strokePattern;
-				if (!hitTesting) cairo.strokePreserve ();
+				cairo.strokePreserve ();
 				
 			}
 			
@@ -1011,12 +861,12 @@ class CairoGraphics {
 				if (pendingMatrix != null) {
 					
 					cairo.transform (pendingMatrix.__toMatrix3 ());
-					if (!hitTesting) cairo.fillPreserve ();
+					cairo.fillPreserve ();
 					cairo.transform (inversePendingMatrix.__toMatrix3 ());
 					
 				} else {
 					
-					if (!hitTesting) cairo.fillPreserve ();
+					cairo.fillPreserve ();
 					
 				}
 				
@@ -1075,8 +925,6 @@ class CairoGraphics {
 			
 		} else {
 			
-			hitTesting = false;
-			
 			if (graphics.__cairo != null) {
 				
 				var surface:CairoImageSurface = cast graphics.__cairo.target;
@@ -1108,8 +956,8 @@ class CairoGraphics {
 			cairo.paint ();
 			cairo.operator = OVER;
 			
-			fillCommands.splice (0, fillCommands.length);
-			strokeCommands.splice (0, strokeCommands.length);
+			fillCommands = new Array<DrawCommand> ();
+			strokeCommands = new Array<DrawCommand> ();
 			
 			hasFill = false;
 			hasStroke = false;
@@ -1118,7 +966,7 @@ class CairoGraphics {
 			strokePattern = null;
 			
 			for (command in graphics.__commands) {
-				
+			
 				switch (command) {
 					
 					case CubicCurveTo (_, _, _, _, _, _), CurveTo (_, _, _, _), LineTo (_, _), MoveTo (_, _):
@@ -1174,7 +1022,7 @@ class CairoGraphics {
 				
 			}
 			
-			graphics.__bitmap.image.dirty = true;
+			graphics.__bitmap.__image.dirty = true;
 			
 		}
 		

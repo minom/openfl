@@ -8,7 +8,7 @@ import hxtelemetry.HxTelemetry;
 @:allow(openfl.display.Stage)
 
 
-@:final class Telemetry {
+class Telemetry {
 	
 	
 	public static var connected (get, never):Bool;
@@ -134,7 +134,7 @@ import hxtelemetry.HxTelemetry;
 }
 
 
-@:noCompletion @:dox(hide) @:enum abstract TelemetryCommandName(String) from String to String {
+@:noCompletion @:enum abstract TelemetryCommandName(String) from String to String {
 	
 	var EVENT = ".event";
 	var RENDER = ".render";

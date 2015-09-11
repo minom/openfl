@@ -7,7 +7,7 @@ import openfl.ui.GameInputDevice;
 /**
  * The GameInputEvent class represents an event that is dispatched when a game input device has either been added or removed from the application platform. A game input device also dispatches events when it is turned on or off.
  */
-@:final class GameInputEvent extends Event {
+class GameInputEvent extends Event {
 	
 	
 	/**

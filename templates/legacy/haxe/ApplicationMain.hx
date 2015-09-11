@@ -203,7 +203,7 @@ class ApplicationMain {
 	
 	
 	#if neko
-	@:noCompletion @:dox(hide) public static function __init__ () {
+	@:noCompletion public static function __init__ () {
 		
 		untyped $loader.path = $array (haxe.io.Path.directory (Sys.executablePath ()), $loader.path);
 		untyped $loader.path = $array ("./", $loader.path);
@@ -361,7 +361,7 @@ class ApplicationMain {
 	}
 	
 	#if neko
-	@:noCompletion @:dox(hide) public static function __init__ () {
+	@:noCompletion public static function __init__ () {
 		
 		untyped $loader.path = $array (haxe.io.Path.directory (Sys.executablePath ()), $loader.path);
 		untyped $loader.path = $array ("./", $loader.path);
@@ -401,7 +401,6 @@ class ApplicationMain {
 #if !macro
 
 
-@:access(lime.app.Application)
 @:access(lime.Assets)
 
 
@@ -419,7 +418,7 @@ class ApplicationMain {
 		openfl.Lib.application = app;
 		
 		#if !flash
-		var stage = new openfl._legacy.display.HybridStage (app.window.width, app.window.height, app.window.config.background);
+		var stage = new openfl._legacy.display.HybridStage (app.window.width, app.window.height, config.background);
 		stage.addChild (openfl.Lib.current);
 		app.addModule (stage);
 		#end
@@ -427,8 +426,7 @@ class ApplicationMain {
 		var display = ::if (PRELOADER_NAME != "")::new ::PRELOADER_NAME:: ()::else::new NMEPreloader ()::end::;
 		
 		preloader = new openfl.display.Preloader (display);
-		app.setPreloader (preloader);
-		preloader.onComplete.add (init);
+		preloader.onComplete = init;
 		preloader.create (config);
 		
 		#if (js && html5)
@@ -508,37 +506,25 @@ class ApplicationMain {
 		
 		config = {
 			
-			build: "::meta.buildNumber::",
-			company: "::meta.company::",
+			antialiasing: Std.int (::WIN_ANTIALIASING::),
+			background: Std.int (::WIN_BACKGROUND::),
+			borderless: ::WIN_BORDERLESS::,
+			company: "::META_COMPANY::",
+			depthBuffer: ::WIN_DEPTH_BUFFER::,
 			file: "::APP_FILE::",
-			fps: ::WIN_FPS::,
-			name: "::meta.title::",
+			fps: Std.int (::WIN_FPS::),
+			fullscreen: ::WIN_FULLSCREEN::,
+			height: Std.int (::WIN_HEIGHT::),
 			orientation: "::WIN_ORIENTATION::",
-			packageName: "::meta.packageName::",
-			version: "::meta.version::",
-			windows: [
-				::foreach windows::
-				{
-					antialiasing: ::antialiasing::,
-					background: ::background::,
-					borderless: ::borderless::,
-					depthBuffer: ::depthBuffer::,
-					display: ::display::,
-					fullscreen: ::fullscreen::,
-					hardware: ::hardware::,
-					height: ::height::,
-					parameters: "::parameters::",
-					resizable: ::resizable::,
-					stencilBuffer: ::stencilBuffer::,
-					title: "::title::",
-					vsync: ::vsync::,
-					width: ::width::,
-					x: ::x::,
-					y: ::y::
-				},::end::
-			]
+			packageName: "::META_PACKAGE_NAME::",
+			resizable: ::WIN_RESIZABLE::,
+			stencilBuffer: ::WIN_STENCIL_BUFFER::,
+			title: "::APP_TITLE::",
+			version: "::META_VERSION::",
+			vsync: ::WIN_VSYNC::,
+			width: Std.int (::WIN_WIDTH::),
 			
-		};
+		}
 		
 		#if (js && html5)
 		#if (munit || utest)
@@ -591,7 +577,7 @@ class ApplicationMain {
 	
 	
 	#if neko
-	@:noCompletion @:dox(hide) public static function __init__ () {
+	@:noCompletion public static function __init__ () {
 		
 		var loader = new neko.vm.Loader (untyped $loader);
 		loader.addPath (haxe.io.Path.directory (Sys.executablePath ()));

@@ -27,7 +27,7 @@ class DOMSprite extends Sprite {
 	}
 	
 	
-	@:noCompletion @:dox(hide) public override function __renderDOM (renderSession:RenderSession):Void {
+	@:noCompletion public override function __renderDOM (renderSession:RenderSession):Void {
 		
 		#if (js && html5)
 		if (stage != null && __worldVisible && __renderable) {

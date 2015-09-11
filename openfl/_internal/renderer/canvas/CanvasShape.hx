@@ -27,45 +27,41 @@ class CanvasShape {
 			
 			if (graphics.__canvas != null) {
 				
+				if (shape.__mask != null) {
+					
+					renderSession.maskManager.pushMask (shape.__mask);
+					
+				}
+				
 				var context = renderSession.context;
 				var scrollRect = shape.scrollRect;
 				
-				if (graphics.__bounds.width > 0 && graphics.__bounds.height > 0 && (scrollRect == null || (scrollRect.width > 0 && scrollRect.height > 0))) {
+				context.globalAlpha = shape.__worldAlpha;
+				var transform = shape.__worldTransform;
+				
+				if (renderSession.roundPixels) {
 					
-					if (shape.__mask != null) {
-						
-						renderSession.maskManager.pushMask (shape.__mask);
-						
-					}
+					context.setTransform (transform.a, transform.b, transform.c, transform.d, Std.int (transform.tx), Std.int (transform.ty));
 					
-					context.globalAlpha = shape.__worldAlpha;
-					var transform = shape.__worldTransform;
+				} else {
 					
-					if (renderSession.roundPixels) {
-						
-						context.setTransform (transform.a, transform.b, transform.c, transform.d, Std.int (transform.tx), Std.int (transform.ty));
-						
-					} else {
-						
-						context.setTransform (transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
-						
-					}
+					context.setTransform (transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
 					
-					if (scrollRect == null) {
-						
-						context.drawImage (graphics.__canvas, graphics.__bounds.x, graphics.__bounds.y);
-						
-					} else {
-						
-						context.drawImage (graphics.__canvas, Math.ceil (graphics.__bounds.x + scrollRect.x), Math.ceil (graphics.__bounds.y + scrollRect.y), scrollRect.width, scrollRect.height, Math.ceil (graphics.__bounds.x + scrollRect.x), Math.ceil (graphics.__bounds.y + scrollRect.y), scrollRect.width, scrollRect.height);
-						
-					}
+				}
+				
+				if (scrollRect == null) {
 					
-					if (shape.__mask != null) {
-						
-						renderSession.maskManager.popMask ();
-						
-					}
+					context.drawImage (graphics.__canvas, graphics.__bounds.x, graphics.__bounds.y);
+					
+				} else {
+					
+					context.drawImage (graphics.__canvas, Math.ceil (graphics.__bounds.x + scrollRect.x), Math.ceil (graphics.__bounds.y + scrollRect.y), scrollRect.width, scrollRect.height, Math.ceil (graphics.__bounds.x + scrollRect.x), Math.ceil (graphics.__bounds.y + scrollRect.y), scrollRect.width, scrollRect.height);
+					
+				}
+				
+				if (shape.__mask != null) {
+					
+					renderSession.maskManager.popMask ();
 					
 				}
 				

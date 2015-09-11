@@ -239,21 +239,17 @@ class Sound extends EventDispatcher {
 	public function close ():Void {
 		
 		#if !html5
-		
 		if (__buffer != null) {
 			
 			__buffer.dispose ();
 			
 		}
-		
 		#else
-		
 		if (__registeredSounds.exists (__soundID)) {
 			
 			SoundJS.removeSound (__soundID);
 			
 		}
-		
 		#end
 		
 	}
@@ -356,11 +352,8 @@ class Sound extends EventDispatcher {
 	public function load (stream:URLRequest, context:SoundLoaderContext = null):Void {
 		
 		#if !html5
-		
 		AudioBuffer.fromURL (stream.url, AudioBuffer_onURLLoad);
-		
 		#else
-		
 		url = stream.url;
 		__soundID = Path.withoutExtension (stream.url);
 		
@@ -376,7 +369,6 @@ class Sound extends EventDispatcher {
 			dispatchEvent (new Event (Event.COMPLETE));
 			
 		}
-		
 		#end
 		
 	}
@@ -387,13 +379,9 @@ class Sound extends EventDispatcher {
 		// TODO: handle byte length
 		
 		#if !html5
-		
 		__buffer = AudioBuffer.fromBytes (bytes);
-		
 		#else
-		
 		openfl.Lib.notImplemented ("Sound.loadCompressedDataFromByteArray");
-		
 		#end
 		
 	}
@@ -404,13 +392,9 @@ class Sound extends EventDispatcher {
 		// TODO: handle pre-decoded data
 		
 		#if !html5
-		
 		__buffer = AudioBuffer.fromBytes (bytes);
-		
 		#else
-		
 		openfl.Lib.notImplemented ("Sound.loadPCMFromByteArray");
-		
 		#end
 		
 	}
@@ -439,15 +423,12 @@ class Sound extends EventDispatcher {
 		// TODO: handle pan
 		
 		#if !html5
-		
 		var source = new AudioSource (__buffer);
 		source.offset = Std.int (startTime * 1000);
 		if (loops > 1) source.loops = loops - 1;
 		if (sndTransform != null) source.gain = sndTransform.volume;
 		return new SoundChannel (source);
-		
 		#else
-		
 		if (sndTransform == null) {
 			
 			sndTransform = new SoundTransform (1, 0);
@@ -461,7 +442,6 @@ class Sound extends EventDispatcher {
 			SoundJS.play (__soundID, SoundJS.INTERRUPT_ANY, 0, Std.int (startTime), 0, sndTransform.volume, sndTransform.pan);
 		
 		return new SoundChannel (instance);
-		
 		#end
 		
 	}
@@ -525,16 +505,8 @@ class Sound extends EventDispatcher {
 	
 	@:noCompletion private function AudioBuffer_onURLLoad (buffer:AudioBuffer):Void {
 		
-		if (buffer == null) {
-			
-			dispatchEvent (new IOErrorEvent (IOErrorEvent.IO_ERROR));
-			
-		} else {
-			
-			__buffer = buffer;
-			dispatchEvent (new Event (Event.COMPLETE));
-			
-		}
+		__buffer = buffer;
+		dispatchEvent (new Event (Event.COMPLETE));
 		
 	}
 	
@@ -570,7 +542,7 @@ class Sound extends EventDispatcher {
 
 
 #if html5
-@:noCompletion @:dox(hide) @:native("createjs.Sound") extern class SoundJS {
+@:native("createjs.Sound") extern class SoundJS {
 	
 	public static function addEventListener (type:String, listener:Dynamic, ?useCapture:Bool):Dynamic;
 	public static function dispatchEvent (eventObj:Dynamic, ?target:Dynamic):Bool;
@@ -622,7 +594,7 @@ class Sound extends EventDispatcher {
 }
 
 
-@:noCompletion @:dox(hide) @:native("createjs.SoundInstance") extern class SoundJSInstance extends SoundJSEventDispatcher {
+@:native("createjs.SoundInstance") extern class SoundJSInstance extends SoundJSEventDispatcher {
 	
 	public function new (src:String, owner:Dynamic):Void;
 	public function getDuration ():Int;
@@ -659,7 +631,7 @@ class Sound extends EventDispatcher {
 }
 
 
-@:noCompletion @:dox(hide) @:native("createjs.EventDispatcher") extern class SoundJSEventDispatcher {
+@:native("createjs.EventDispatcher") extern class SoundJSEventDispatcher {
 	
 	public function addEventListener (type:String, listener:Dynamic, ?useCapture:Bool):Dynamic;
 	public function dispatchEvent (eventObj:Dynamic, ?target:Dynamic):Bool;

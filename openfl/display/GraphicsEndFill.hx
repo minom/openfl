@@ -12,11 +12,11 @@ import openfl.display.IGraphicsFill;
  * <p> Drawing a GraphicsEndFill object is the equivalent of calling the
  * <code>Graphics.endFill()</code> method. </p>
  */
-@:final class GraphicsEndFill implements IGraphicsData implements IGraphicsFill {
+class GraphicsEndFill implements IGraphicsData implements IGraphicsFill {
 	
 	
-	@:noCompletion @:dox(hide) public var __graphicsDataType (default,null):GraphicsDataType;
-	@:noCompletion @:dox(hide) public var __graphicsFillType (default, null):GraphicsFillType;
+	@:noCompletion public var __graphicsDataType (default,null):GraphicsDataType;
+	@:noCompletion public var __graphicsFillType (default, null):GraphicsFillType;
 	
 	
 	/**

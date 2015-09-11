@@ -10,7 +10,7 @@ import js.html.ImageData;
 
 
 
-@:final class ColorMatrixFilter extends BitmapFilter {
+class ColorMatrixFilter extends BitmapFilter {
 	
 	
 	public var matrix:Array<Float>;
@@ -39,7 +39,7 @@ import js.html.ImageData;
 	
 	
 	#if (js && html5)
-	@:noCompletion @:dox(hide) public override function __applyFilter (sourceData:ImageData, targetData:ImageData, sourceRect:Rectangle, destPoint:Point):Void {
+	@:noCompletion public override function __applyFilter (sourceData:ImageData, targetData:ImageData, sourceRect:Rectangle, destPoint:Point):Void {
 		
 		var source = sourceData.data;
 		var target = targetData.data;

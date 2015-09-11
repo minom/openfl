@@ -689,7 +689,7 @@ class DisplayObjectContainer extends InteractiveObject {
 		
 		for (child in __children) {
 			
-			if (child.scaleX == 0 || child.scaleY == 0 || child.__isMask) continue;
+			if (!child.__renderable) continue;
 			child.__getBounds (rect, child.__worldTransform);
 			
 		}
@@ -706,8 +706,8 @@ class DisplayObjectContainer extends InteractiveObject {
 	
 	@:noCompletion private override function __hitTest (x:Float, y:Float, shapeFlag:Bool, stack:Array<DisplayObject>, interactiveOnly:Bool):Bool {
 		
-		if (!visible || __isMask || (interactiveOnly && !mouseEnabled && !mouseChildren)) return false;
-		if (mask != null && !mask.__hitTestMask (x, y)) return false;
+		if (!visible || __isMask) return false;
+		
 		if (scrollRect != null && !scrollRect.containsPoint (globalToLocal (new Point (x, y)))) return false;
 		
 		var i = __children.length;
@@ -719,7 +719,7 @@ class DisplayObjectContainer extends InteractiveObject {
 					
 					if (__children[i].__hitTest (x, y, shapeFlag, null, true)) {
 						
-						if (stack != null) {
+						if (mouseEnabled && stack != null) {
 							
 							stack.push (this);
 							
@@ -762,7 +762,12 @@ class DisplayObjectContainer extends InteractiveObject {
 				
 				if (hitTest) {
 					
-					stack.insert (length, this);
+					if (mouseEnabled) {
+						
+						stack.insert (length, this);
+						
+					}
+					
 					return true;
 					
 				}
@@ -774,25 +779,6 @@ class DisplayObjectContainer extends InteractiveObject {
 			while (--i >= 0) {
 				
 				__children[i].__hitTest (x, y, shapeFlag, stack, false);
-				
-			}
-			
-		}
-		
-		return false;
-		
-	}
-	
-	
-	@:noCompletion private override function __hitTestMask (x:Float, y:Float):Bool {
-		
-		var i = __children.length;
-		
-		while (--i >= 0) {
-			
-			if (__children[i].__hitTestMask (x, y)) {
-				
-				return true;
 				
 			}
 			

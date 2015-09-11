@@ -58,11 +58,6 @@ import openfl.display.DisplayObject;
  * projection center changes. For more control over the perspective
  * transformation, create a perspective projection Matrix3D object.</p>
  */
-
-@:access(openfl.display.DisplayObject)
-@:access(openfl.geom.ColorTransform)
-
-
 class Transform {
 	
 	
@@ -165,17 +160,11 @@ class Transform {
 	
 	@:noCompletion private function set_colorTransform (value:ColorTransform):ColorTransform {
 		
-		if (!__colorTransform.__equals (value)) {
+		__colorTransform = value;
+		
+		if (value != null) {
 			
-			__colorTransform = value;
-			
-			if (value != null) {
-				
-				__displayObject.alpha = value.alphaMultiplier;
-				
-			}
-			
-			__displayObject.__setRenderDirty ();
+			__displayObject.alpha = value.alphaMultiplier;
 			
 		}
 		
@@ -188,7 +177,11 @@ class Transform {
 		
 		if (__hasMatrix) {
 			
-			return __displayObject.__transform.clone ();
+			var matrix = new Matrix ();
+			matrix.scale (__displayObject.scaleX, __displayObject.scaleY);
+			matrix.rotate (__displayObject.rotation * (Math.PI / 180));
+			matrix.translate (__displayObject.x, __displayObject.y);
+			return matrix;
 			
 		}
 		
@@ -211,19 +204,11 @@ class Transform {
 		
 		if (__displayObject != null) {
 			
-			var rotation = (180 / Math.PI) * Math.atan2 (value.d, value.c) - 90;
-			
-			if (rotation != __displayObject.__rotation) {
-				
-				__displayObject.__rotation = rotation;
-				var radians = rotation * (Math.PI / 180);
-				__displayObject.__rotationSine = Math.sin (radians);
-				__displayObject.__rotationCosine = Math.cos (radians);
-				
-			}
-			
-			__displayObject.__transform.copyFrom (value);
-			__displayObject.__setTransformDirty ();
+			__displayObject.x = value.tx;
+			__displayObject.y = value.ty;
+			__displayObject.scaleX = Math.sqrt ((value.a * value.a) + (value.b * value.b));
+			__displayObject.scaleY = Math.sqrt ((value.c * value.c) + (value.d * value.d));
+			__displayObject.rotation = Math.atan2 (value.b, value.a) * (180 / Math.PI);
 			
 		}
 		
@@ -236,7 +221,11 @@ class Transform {
 		
 		if (__hasMatrix3D) {
 			
-			var matrix = __displayObject.__transform;
+			var matrix = new Matrix ();
+			matrix.scale (__displayObject.scaleX, __displayObject.scaleY);
+			matrix.rotate (__displayObject.rotation * (Math.PI / 180));
+			matrix.translate (__displayObject.x, __displayObject.y);
+			
 			return new Matrix3D ([ matrix.a, matrix.b, 0.0, 0.0, matrix.c, matrix.d, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, matrix.tx, matrix.ty, 0.0, 1.0 ]);
 			
 		}
@@ -260,25 +249,11 @@ class Transform {
 		
 		if (__displayObject != null) {
 			
-			var rotation = (180 / Math.PI) * Math.atan2 (value.rawData[5], value.rawData[4]) - 90;
-			
-			if (rotation != __displayObject.__rotation) {
-				
-				__displayObject.__rotation = rotation;
-				var radians = rotation * (Math.PI / 180);
-				__displayObject.__rotationSine = Math.sin (radians);
-				__displayObject.__rotationCosine = Math.cos (radians);
-				
-			}
-			
-			__displayObject.__transform.a = value.rawData[0];
-			__displayObject.__transform.b = value.rawData[1];
-			__displayObject.__transform.c = value.rawData[5];
-			__displayObject.__transform.d = value.rawData[6];
-			__displayObject.__transform.tx = value.rawData[12];
-			__displayObject.__transform.ty = value.rawData[13];
-			
-			__displayObject.__setTransformDirty ();
+			__displayObject.x = value.rawData[12];
+			__displayObject.y = value.rawData[13];
+			__displayObject.scaleX = Math.sqrt ((value.rawData[0] * value.rawData[0]) + (value.rawData[1] * value.rawData[1]));
+			__displayObject.scaleY = Math.sqrt ((value.rawData[4] * value.rawData[4]) + (value.rawData[5] * value.rawData[5]));
+			__displayObject.rotation = Math.atan2 (value.rawData[1], value.rawData[0]) * (180 / Math.PI);
 			
 		}
 		

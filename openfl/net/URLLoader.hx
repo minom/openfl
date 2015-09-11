@@ -340,7 +340,7 @@ class URLLoader extends EventDispatcher {
 				}
 				
 				var bytes = ByteArray.readFile (path);
-				worker.sendComplete (bytes);
+				worker.onComplete.dispatch (bytes);
 				
 			});
 			worker.onComplete.add (function (bytes) {
@@ -645,7 +645,7 @@ class URLLoader extends EventDispatcher {
 		worker.doWork.add (function (_) {
 			
 			var result = CURLEasy.perform (__curl);
-			worker.sendComplete (result);
+			worker.onComplete.dispatch (result);
 			
 		});
 		worker.onComplete.add (function (result) {
@@ -837,7 +837,7 @@ class URLLoader extends EventDispatcher {
 }
 
 
-@:noCompletion @:dox(hide) typedef XMLHttpRequestProgressEvent = Dynamic;
+typedef XMLHttpRequestProgressEvent = Dynamic;
 
 
 #else

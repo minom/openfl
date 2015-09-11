@@ -169,10 +169,9 @@ class Sprite extends DisplayObjectContainer {
 	
 	@:noCompletion private override function __hitTest (x:Float, y:Float, shapeFlag:Bool, stack:Array<DisplayObject>, interactiveOnly:Bool):Bool {
 		
-		if (!visible || __isMask || (interactiveOnly && !mouseEnabled && !mouseChildren)) return false;
-		if (mask != null && !mask.__hitTestMask (x, y)) return false;
+		if (!visible || __isMask) return false;
 		
-		if (super.__hitTest (x, y, shapeFlag, stack, interactiveOnly)) {
+		if ((!interactiveOnly || mouseChildren) && super.__hitTest (x, y, shapeFlag, stack, interactiveOnly)) {
 			
 			return interactiveOnly;
 			
@@ -183,23 +182,6 @@ class Sprite extends DisplayObjectContainer {
 				stack.push (this);
 				
 			}
-			
-			return true;
-			
-		}
-		
-		return false;
-		
-	}
-	
-	
-	@:noCompletion private override function __hitTestMask (x:Float, y:Float):Bool {
-		
-		if (super.__hitTestMask (x, y)) {
-			
-			return true;
-			
-		} else if (__graphics != null && __graphics.__hitTest (x, y, true, __getTransform ())) {
 			
 			return true;
 			
@@ -227,13 +209,6 @@ class Sprite extends DisplayObjectContainer {
 		}
 		
 		return __graphics;
-		
-	}
-	
-	
-	@:noCompletion private override function get_tabEnabled ():Bool {
-		
-		return (__tabEnabled || buttonMode);
 		
 	}
 	
